@@ -1,0 +1,124 @@
+*
+  box-sizing border-box
+
+.ImagesLoader
+  font-family Ubuntu
+  width 100%
+  .Droparea
+    display flex
+    flex-flow row wrap
+    justify-content center
+    align-items center
+    min-height 300px
+    height 30%
+    width 100%
+    background-color #1a1a1a
+    color gray
+    transition all .2s ease-in
+    &.over
+      color #1a1a1a
+      background-color tomato
+  .Previews
+    display flex
+    flex-flow column wrap
+    padding 0
+    margin 0
+    margin-top 5px
+    width 100%
+    justify-content space-between
+    .Preview-item
+      position relative
+      display flex
+      flex-flow column wrap
+      list-style-type none
+      margin 0
+      padding 0
+      box-shadow: 5px 6px 7px -6px rgba(0,0,0,0.75);
+      margin-bottom 5px
+      overflow hidden
+      &.removed
+        animation-name showBounce
+        animation-duration .3s
+        animation-direction reverse
+
+
+.Preview-item-img
+ position relative
+ display flex
+ transform scale(2)
+ opacity 0
+ transition-property opacity, transform
+ transition-duration .5s , .3s
+ transition-timing-function ease-in
+ &.visible
+   transform scale(1)
+   opacity 1
+ img
+  position relative
+  width 100%
+
+.Preview-item-form
+  position relative
+  display flex
+  flex-flow column wrap
+  align-items flex-end
+  justify-content space-between
+  width 100%
+  padding 10px
+  animation-name showBounce
+  animation-duration .3s
+  label
+    display block
+    min-width 100%
+    font-family Ubuntu
+    color #27272F
+    margin-bottom 5px
+    input,
+    select
+      display block
+      position relative
+      width 100%
+      border none
+      border-bottom solid 1px #9E9E9E
+  .Delete-button
+    width 70px
+    height 30px
+    border none
+    color white
+    background-color rgba(249, 56, 68, 0.78)
+    cursor pointer
+    transition-property background-color
+    transition-duration .2s
+    transition-timing-function ease-in
+    &:hover
+    &:active
+    &:focus
+      background-color rgb(223, 50, 50)
+
+@keyframes showBounce
+  0%
+    opacity 0
+    transform scale(0)
+  70%
+    opacity .7
+    transform scale(1.2)
+  100%
+    opacity 1
+    transform scale(1)
+
+
+@media screen and (min-width 768px)
+  .Previews
+    flex-flow row wrap !important
+    .Preview-item
+      flex-flow row wrap !important
+      width calc(50% - 2.5px)
+      .Preview-item-img
+      .Preview-item-form
+       width 50%
+
+      .Preview-item-form
+
+        transition-property opacity
+        transition-duration .3s
+        transition-timing-function ease-in
