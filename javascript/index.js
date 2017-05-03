@@ -9,7 +9,12 @@ class ImagesLoader extends React.Component{
   AddImages(e){
     e.preventDefault()
     let images= []
-    let files = e.dataTransfer.files
+    let files
+    if(typeof e.dataTransfer === "undefined"){
+      files = e.target.files
+    } else {
+      files = e.dataTransfer.files
+    }
     for(let i = 0; i < files.length;i++){
       let file = files[i]
       if(file.type.split('/')[0] === "image"){
@@ -50,6 +55,7 @@ class Droparea extends React.Component{
     super(props)
     this.handleDragOver = this.handleDragOver.bind(this)
     this.handleDragLeave = this.handleDragLeave.bind(this)
+    this.handleClick = this.handleClick.bind(this)
   }
 
   handleDragOver(e){
@@ -64,18 +70,31 @@ class Droparea extends React.Component{
     target.classList.remove('over')
   }
 
+  handleClick(e){
+    this.filesInput.click()
+  }
+
   render(){
     return(
       <div
         className="Droparea"
         onDragOver={this.handleDragOver}
         onDragLeave={this.handleDragLeave}
-        onDrop={this.props.onDropFiles}>
+        onDrop={this.props.onDropFiles}
+        onClick={this.handleClick}>
         <span className="Droparea-text"> Drag your elements Here. </span>
+        <input
+          className="hidden-input"
+          type="file"
+          multiple
+          ref={(input) => this.filesInput = input}
+          onChange={this.props.onDropFiles}
+        />
       </div>
     )
   }
 }
+
 
 class Previews extends React.Component{
   constructor(props){
