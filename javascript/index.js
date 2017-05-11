@@ -2,34 +2,32 @@ class ImagesLoader extends React.Component{
   constructor(props){
     super(props)
     this.state = {images: []}
-    this.AddImages = this.AddImages.bind(this)
     this.handleUpdateImages = this.handleUpdateImages.bind(this)
+    this.handleAddImage = this.handleAddImage.bind(this)
+    this.handleClearImages = this.handleClearImages.bind(this)
   }
 
-  AddImages(e){
-    e.preventDefault()
-    let images= []
-    let files
-    if(typeof e.dataTransfer === "undefined"){
-      files = e.target.files
-    } else {
-      files = e.dataTransfer.files
-    }
-    for(let i = 0; i < files.length;i++){
-      let file = files[i]
-      if(file.type.split('/')[0] === "image"){
-        let name = file.name.substring(0,file.name.lastIndexOf("."))
-        let newImage = {
-          title: name,
-          file: file,
-          category: 1
-        }
-        images.push(newImage)
+  handleAddImage(newImage){
+    let images = this.state.images
+    let loaded = false
+    images.map(image => {
+      if(image.data === newImage.data){
+        loaded = true
       }
-    }
-    this.setState({
-      images: images
     })
+    if(!loaded){
+      images.push(newImage)
+      this.setState({images: images})
+    }
+  }
+
+  handleClearImages(){
+    this.setState({images: []})
+  }
+
+  handleSubmitImages(){
+    console.log('Se eviaran los archivos:')
+    console.log(this.state.images)
   }
 
   handleUpdateImages(upImages){
@@ -40,10 +38,15 @@ class ImagesLoader extends React.Component{
     return(
       <div
         className="ImagesLoader">
-        <Droparea onDropFiles={this.AddImages}/>
+        <Droparea onAddImage={this.handleAddImage}/>
         <Previews
           images={this.state.images}
           onUpdateImages={this.handleUpdateImages}
+        />
+        <ActionsBar
+          onClearImages={this.handleClearImages}
+          onSubmitImages={this.handleSubmitImages}
+          visible={(this.state.images.length > 0) ? true : false}
         />
       </div>
     )
@@ -56,6 +59,43 @@ class Droparea extends React.Component{
     this.handleDragOver = this.handleDragOver.bind(this)
     this.handleDragLeave = this.handleDragLeave.bind(this)
     this.handleClick = this.handleClick.bind(this)
+    this.handleDrop = this.handleDrop.bind(this)
+  }
+
+  getData(file){
+    return new Promise(resolve => {
+      let fileReader = new FileReader()
+      fileReader.onload = function(){
+          resolve(this.result)
+      }
+      fileReader.readAsDataURL(file)
+    })
+  }
+
+  handleDrop(e){
+    e.preventDefault()
+    let images= []
+    let files
+    if(typeof e.dataTransfer === "undefined"){
+      files = e.target.files
+    } else {
+      files = e.dataTransfer.files
+    }
+    for(let i = 0; i < files.length;i++){
+      let file = files[i]
+      if(file.type.split('/')[0] === "image"){
+        let name = file.name.substring(0,file.name.lastIndexOf("."))
+        this.getData(file).then(base64 => {
+          let newImage = {
+            title: name,
+            file: file,
+            data: base64,
+            category: 1
+          }
+          this.props.onAddImage(newImage)
+        })
+      }
+    }
   }
 
   handleDragOver(e){
@@ -80,7 +120,7 @@ class Droparea extends React.Component{
         className="Droparea"
         onDragOver={this.handleDragOver}
         onDragLeave={this.handleDragLeave}
-        onDrop={this.props.onDropFiles}
+        onDrop={this.handleDrop}
         onClick={this.handleClick}>
         <span className="Droparea-text"> Drag your elements Here. </span>
         <input
@@ -88,7 +128,7 @@ class Droparea extends React.Component{
           type="file"
           multiple
           ref={(input) => this.filesInput = input}
-          onChange={this.props.onDropFiles}
+          onChange={this.handleDrop}
         />
       </div>
     )
@@ -145,9 +185,14 @@ class Previews extends React.Component{
 class PreviewItem extends React.Component{
   constructor(props){
     super(props)
-    this.state = {imageLoaded: false, removed: false}
+    this.state = {
+      imageLoaded: false,
+      visible: false,
+      removed: false
+    }
     this.handleChangeTitle = this.handleChangeTitle.bind(this)
     this.handleChangeCategory = this.handleChangeCategory.bind(this)
+    this.handleChangeData = this.handleChangeData.bind(this)
     this.handleImageLoaded = this.handleImageLoaded.bind(this)
     this.handleDeleteItem = this.handleDeleteItem.bind(this)
     this.handleDeleteTransitionEnd = this.handleDeleteTransitionEnd.bind(this)
@@ -161,8 +206,15 @@ class PreviewItem extends React.Component{
     this.props.onChangeItem(this.props.image,'category',value)
   }
 
+  handleChangeData(data){
+    this.props.onChangeItem(this.props.image,'data',data)
+  }
+
   handleImageLoaded(){
-    this.setState({imageLoaded: true})
+    this.setState({
+      imageLoaded: true,
+      visible: true
+    })
   }
 
   handleDeleteItem(){
@@ -175,19 +227,6 @@ class PreviewItem extends React.Component{
 
   render(){
     let clases = "Preview-item" + (this.state.removed ? " removed" : "")
-    if(!this.state.imageLoaded){
-      return (
-        <li
-          className={clases}
-          >
-          <PreviewItemImg
-            image={this.props.image}
-            onImageLoaded={this.handleImageLoaded}
-          />
-        </li>
-      )
-    }
-
     if (this.state.removed) {
       return(
         <li
@@ -212,6 +251,7 @@ class PreviewItem extends React.Component{
         className={clases}>
         <PreviewItemImg
           image={this.props.image}
+          onChangeData={this.handleChangeData}
           onImageLoaded={this.handleImageLoaded}
         />
         <PreviewItemForm
@@ -228,35 +268,20 @@ class PreviewItem extends React.Component{
 class PreviewItemImg extends React.Component{
   constructor(props){
     super(props)
-    this.state = {image: this.props.image, src: false, visible: false}
-    this.getImage().then(img => {
-      this.setState({src: img.src})
-    })
+    this.state = {
+      image: this.props.image,
+      visible: false
+    }
     this.handleImageLoaded = this.handleImageLoaded.bind(this)
   }
 
   handleImageLoaded(){
     this.setState({visible: true})
-  }
-
-  getImage(){
-    return new Promise((resolve,reject) => {
-      let image = this.props.image.file
-      let fileReader = new FileReader()
-      fileReader.onload = function(){
-        let base64 = this.result
-        let img = new Image()
-        img.onload = function(){
-          resolve(this)
-        }
-        img.src = base64
-      }
-      fileReader.readAsDataURL(image)
-    })
+    this.props.onImageLoaded()
   }
 
   render(){
-    if(!this.state.src){
+    if(!this.state.image){
       return null
     }
     let clases = "Preview-item-img " + (this.state.visible ? "visible" : "")
@@ -265,7 +290,7 @@ class PreviewItemImg extends React.Component{
            onTransitionEnd={this.props.onImageLoaded}>
         <img
           className="Item-img"
-          src={this.state.src}
+          src={this.state.image.data}
           onLoad={this.handleImageLoaded}
         />
       </div>
@@ -348,6 +373,36 @@ class PreviewItemForm extends React.Component{
   }
 }
 
+class ActionsBar extends React.Component{
+  constructor(props){
+    super(props)
+  }
+
+  render(){
+    if(this.props.visible){
+      return(
+        <div
+          className="Actions-Bar">
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={this.props.onSubmitImages}>
+            Submit
+          </button>
+          <button
+            className="btn btn-danger"
+            type="button"
+            onClick={this.props.onClearImages}
+            >
+            Clear
+          </button>
+        </div>
+      )
+    } else {
+      return null
+    }
+  }
+}
 ReactDOM.render(
   <ImagesLoader />,
   document.getElementById('root')
