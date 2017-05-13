@@ -38,7 +38,9 @@ class ImagesLoader extends React.Component{
     return(
       <div
         className="ImagesLoader">
-        <Droparea onAddImage={this.handleAddImage}/>
+        <Droparea
+          empty={(this.state.images.length > 0) ? false : true}
+          onAddImage={this.handleAddImage}/>
         <Previews
           images={this.state.images}
           onUpdateImages={this.handleUpdateImages}
@@ -74,7 +76,6 @@ class Droparea extends React.Component{
 
   handleDrop(e){
     e.preventDefault()
-    let images= []
     let files
     if(typeof e.dataTransfer === "undefined"){
       files = e.target.files
@@ -117,7 +118,7 @@ class Droparea extends React.Component{
   render(){
     return(
       <div
-        className="Droparea"
+        className={"Droparea" + (!this.props.empty ? " loaded": "")}
         onDragOver={this.handleDragOver}
         onDragLeave={this.handleDragLeave}
         onDrop={this.handleDrop}
@@ -186,9 +187,8 @@ class PreviewItem extends React.Component{
   constructor(props){
     super(props)
     this.state = {
-      imageLoaded: false,
       visible: false,
-      removed: false
+      classCss: 'Preview-item'
     }
     this.handleChangeTitle = this.handleChangeTitle.bind(this)
     this.handleChangeCategory = this.handleChangeCategory.bind(this)
@@ -212,13 +212,16 @@ class PreviewItem extends React.Component{
 
   handleImageLoaded(){
     this.setState({
-      imageLoaded: true,
-      visible: true
+      visible: true,
+      classCss: 'Preview-item' + ' visible'
     })
   }
 
   handleDeleteItem(){
-    this.setState({removed: true})
+    this.setState({
+      visible: false,
+      classCss: 'Preview-item'
+    })
   }
 
   handleDeleteTransitionEnd(){
@@ -226,12 +229,12 @@ class PreviewItem extends React.Component{
   }
 
   render(){
-    let clases = "Preview-item" + (this.state.removed ? " removed" : "")
-    if (this.state.removed) {
+    if (!this.state.visible) {
       return(
         <li
-          className={clases}
-          onAnimationEnd={this.handleDeleteTransitionEnd}>
+          className={this.state.classCss}
+          onTransitionEnd={this.handleDeleteTransitionEnd}
+          >
           <PreviewItemImg
             image={this.props.image}
             onImageLoaded={this.handleImageLoaded}
@@ -244,24 +247,25 @@ class PreviewItem extends React.Component{
             />
         </li>
       )
-    }
-
-    return(
-      <li
-        className={clases}>
-        <PreviewItemImg
-          image={this.props.image}
-          onChangeData={this.handleChangeData}
-          onImageLoaded={this.handleImageLoaded}
-        />
-        <PreviewItemForm
-          image={this.props.image}
-          onChangeTitle={this.handleChangeTitle}
-          onChangeCategory={this.handleChangeCategory}
-          onDeleteItem={this.handleDeleteItem}
+    } else {
+      return(
+        <li
+          ref={(li) => this.element = li}
+          className={this.state.classCss}>
+          <PreviewItemImg
+            image={this.props.image}
+            onChangeData={this.handleChangeData}
+            onImageLoaded={this.handleImageLoaded}
           />
-      </li>
-    )
+          <PreviewItemForm
+            image={this.props.image}
+            onChangeTitle={this.handleChangeTitle}
+            onChangeCategory={this.handleChangeCategory}
+            onDeleteItem={this.handleDeleteItem}
+            />
+        </li>
+      )
+    }
   }
 }
 
@@ -269,29 +273,21 @@ class PreviewItemImg extends React.Component{
   constructor(props){
     super(props)
     this.state = {
-      image: this.props.image,
-      visible: false
+      image: this.props.image
     }
-    this.handleImageLoaded = this.handleImageLoaded.bind(this)
-  }
-
-  handleImageLoaded(){
-    this.setState({visible: true})
-    this.props.onImageLoaded()
   }
 
   render(){
     if(!this.state.image){
       return null
     }
-    let clases = "Preview-item-img " + (this.state.visible ? "visible" : "")
+    let clases = "Preview-item-img"
     return(
-      <div className={clases}
-           onTransitionEnd={this.props.onImageLoaded}>
+      <div className={clases}>
         <img
           className="Item-img"
           src={this.state.image.data}
-          onLoad={this.handleImageLoaded}
+          onLoad={this.props.onImageLoaded}
         />
       </div>
     )
@@ -384,13 +380,13 @@ class ActionsBar extends React.Component{
         <div
           className="Actions-Bar">
           <button
-            className="btn btn-primary"
+            className="submit-btn"
             type="button"
             onClick={this.props.onSubmitImages}>
             Submit
           </button>
           <button
-            className="btn btn-danger"
+            className="clear-btn"
             type="button"
             onClick={this.props.onClearImages}
             >

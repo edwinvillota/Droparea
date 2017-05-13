@@ -9,16 +9,26 @@
     flex-flow row wrap
     justify-content center
     align-items center
-    min-height 300px
-    height 30%
+    height 15vh
     width 100%
     background-color #1a1a1a
     color gray
     cursor pointer
     transition all .2s ease-in
-    &.over
+    border dashed 3px gray
+    border-radius 5px
+    &.loaded
+      animation-name dropAnimation
+      animation-duration .5s
+      animation-timing-function ease-in
+      height 5vh
+      background-color white
       color #1a1a1a
-      background-color tomato
+    &:hover
+    &.over
+      background-color white
+      color #1a1a1a
+      border dashed 3px #1a1a1a
     .hidden-input
       display none
   .Previews
@@ -39,23 +49,27 @@
       box-shadow: 5px 6px 7px -6px rgba(0,0,0,0.75);
       margin-bottom 5px
       overflow hidden
-      &.removed
-        animation-name showBounce
-        animation-duration .3s
-        animation-direction reverse
+      opacity 0
+      transform translateY(100%)
+      transition all .3s ease-in-out
+      &.visible
+        opacity 1
+        transform translateY(0)
 
+@keyframes dropAnimation
+  0%
+    height 15vh
+  20%
+    background-color lightyellow
+    height 20vh
+  100%
+    background-color white
+    color #1a1a1a
+    height 5vh
 
 .Preview-item-img
  position relative
  display flex
- transform scale(2)
- opacity 0
- transition-property opacity, transform
- transition-duration .5s , .3s
- transition-timing-function ease-in
- &.visible
-   transform scale(1)
-   opacity 1
  img
   position relative
   width 100%
@@ -69,8 +83,6 @@
   width 100%
   background-color white
   padding 10px
-  animation-name showBounce
-  animation-duration .3s
   label
     display block
     min-width 100%
@@ -100,17 +112,19 @@
     &:focus
       background-color rgb(223, 50, 50)
 
-@keyframes showBounce
-  0%
-    opacity 0
-    transform scale(0)
-  70%
-    opacity .7
-    transform scale(1.2)
-  100%
-    opacity 1
-    transform scale(1)
-
+.Actions-Bar
+  button
+    margin-top 5px
+    margin-right 5px
+    border none
+    width 70px
+    height 30px
+    cursor pointer
+    color white
+  .submit-btn
+    background-color rgb(69, 153, 214)
+  .clear-btn
+    background-color rgb(121, 191, 66)
 
 @media screen and (min-width 768px)
   .Previews
@@ -121,9 +135,3 @@
       .Preview-item-img
       .Preview-item-form
        width 50%
-
-      .Preview-item-form
-
-        transition-property opacity
-        transition-duration .3s
-        transition-timing-function ease-in
